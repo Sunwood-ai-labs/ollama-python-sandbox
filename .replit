@@ -15,6 +15,10 @@ author = "agent"
 task = "workflow.run"
 args = "Chat Example"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Mock Ollama Server"
+
 [[workflows.workflow]]
 name = "Chat Example"
 author = "agent"
@@ -29,5 +33,24 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "python examples/chat.py"
 
+[[workflows.workflow]]
+name = "Mock Ollama Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python mock_server/server.py"
+waitForPort = 11434
+
 [deployment]
 run = ["sh", "-c", "python examples/chat.py"]
+
+[[ports]]
+localPort = 11434
+externalPort = 80

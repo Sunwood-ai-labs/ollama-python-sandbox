@@ -1,0 +1,25 @@
+<svg width="1280" height="320" viewBox="0 0 1280 320" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="1280" height="320" fill="#f8f9fa"/>
+    
+    <!-- Decorative Elements -->
+    <path d="M0,160 Q320,60 640,160 T1280,160" stroke="#4B8BBE" fill="none" stroke-width="2" opacity="0.3"/>
+    <path d="M0,180 Q320,80 640,180 T1280,180" stroke="#306998" fill="none" stroke-width="2" opacity="0.3"/>
+    
+    <!-- Python-inspired Snake -->
+    <path d="M100,160 Q150,140 200,160 T300,160" stroke="#FFD43B" fill="none" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Title Text -->
+    <text x="640" y="160" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#333333">
+        Ollama Python Sandbox
+    </text>
+    
+    <!-- Subtitle -->
+    <text x="640" y="200" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#666666">
+        Python Client Library for Ollama
+    </text>
+    
+    <!-- Python Logo Inspired Circle -->
+    <circle cx="980" cy="160" r="30" fill="#4B8BBE"/>
+    <circle cx="960" cy="160" r="30" fill="#FFD43B"/>
+</svg>
