@@ -1,7 +1,7 @@
 <svg width="1280" height="320" viewBox="0 0 1280 320" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Background Image -->
     <image x="0" y="0" width="1280" height="320" 
-           xlink:href="./assets/header-background.webp"
+           xlink:href="./assets/header-background.png"
            preserveAspectRatio="xMidYMid slice"/>
     
     <!-- Semi-transparent overlay for better text readability -->
