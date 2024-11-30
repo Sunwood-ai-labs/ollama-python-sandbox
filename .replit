@@ -19,6 +19,10 @@ args = "Chat Example"
 task = "workflow.run"
 args = "Mock Ollama Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "SVG Header Check"
+
 [[workflows.workflow]]
 name = "Chat Example"
 author = "agent"
@@ -47,6 +51,20 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "python mock_server/server.py"
 waitForPort = 11434
+
+[[workflows.workflow]]
+name = "SVG Header Check"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cat header.svg"
 
 [deployment]
 run = ["sh", "-c", "python examples/chat.py"]
