@@ -2,7 +2,8 @@
     <!-- Background Image -->
     <image x="0" y="0" width="1280" height="320" 
            xlink:href="https://raw.githubusercontent.com/Sunwood-ai-labs/ollama-python-sandbox/refs/heads/main/assets/header-background.png"
-           preserveAspectRatio="xMidYMid slice"/>
+           preserveAspectRatio="xMidYMid meet"
+           image-rendering="optimizeQuality"/>
     
     <!-- Semi-transparent overlay for better text readability -->
     <rect width="1280" height="320" fill="#000000" opacity="0.4"/>
