@@ -1,7 +1,7 @@
 <svg width="1280" height="320" viewBox="0 0 1280 320" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Background Image -->
     <image x="0" y="0" width="1280" height="320" 
-           xlink:href="DALL·E 2024-11-30 18.17.09 - A majestic and fantastical high-resolution header image with no text or logos, featuring a surreal, dreamlike landscape that evokes creativity and inn.webp"
+           xlink:href="./assets/header-background.webp"
            preserveAspectRatio="xMidYMid slice"/>
     
     <!-- Semi-transparent overlay for better text readability -->
