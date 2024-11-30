@@ -2,29 +2,28 @@
     <!-- Background Image -->
     <image x="0" y="0" width="1280" height="320" 
            xlink:href="https://raw.githubusercontent.com/Sunwood-ai-labs/ollama-python-sandbox/refs/heads/main/assets/header-background.png"
-           preserveAspectRatio="xMidYMid meet"
-           image-rendering="optimizeQuality"/>
-    
+           preserveAspectRatio="xMidYMid slice"/>
+
     <!-- Semi-transparent overlay for better text readability -->
     <rect width="1280" height="320" fill="#000000" opacity="0.4"/>
-    
+
     <!-- Decorative Elements with adjusted opacity -->
     <path d="M0,160 Q320,60 640,160 T1280,160" stroke="#4B8BBE" fill="none" stroke-width="2" opacity="0.6"/>
     <path d="M0,180 Q320,80 640,180 T1280,180" stroke="#306998" fill="none" stroke-width="2" opacity="0.6"/>
-    
+
     <!-- Python-inspired Snake with increased visibility -->
     <path d="M100,160 Q150,140 200,160 T300,160" stroke="#FFD43B" fill="none" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
-    
+
     <!-- Title Text with enhanced visibility -->
     <text x="640" y="160" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#FFFFFF">
         Ollama Python Sandbox
     </text>
-    
+
     <!-- Subtitle with enhanced visibility -->
     <text x="640" y="200" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#FFFFFF">
         Python Client Library for Ollama
     </text>
-    
+
     <!-- Python Logo Inspired Circles with adjusted opacity -->
     <circle cx="980" cy="160" r="30" fill="#4B8BBE" opacity="0.8"/>
     <circle cx="960" cy="160" r="30" fill="#FFD43B" opacity="0.8"/>
