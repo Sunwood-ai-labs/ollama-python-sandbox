@@ -68,7 +68,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cat header.svg"
+args = "cat assets/header.svg"
 
 [[workflows.workflow]]
 name = "Implementation Check"
