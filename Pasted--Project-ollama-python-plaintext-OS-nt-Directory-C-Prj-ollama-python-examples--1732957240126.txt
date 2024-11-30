@@ -1,0 +1,1009 @@
+# Project: ollama-python
+
+```plaintext
+OS: nt
+Directory: C:\Prj\ollama-python
+
+├─ examples/
+│  ├─ async-chat.py
+│  ├─ async-generate.py
+│  ├─ async-tools.py
+│  ├─ chat-stream.py
+│  ├─ chat-with-history.py
+│  ├─ chat.py
+│  ├─ create.py
+│  ├─ embed.py
+│  ├─ fill-in-middle.py
+│  ├─ generate-stream.py
+│  ├─ generate.py
+│  ├─ list.py
+│  ├─ multimodal-chat.py
+│  ├─ multimodal-generate.py
+│  ├─ ps.py
+│  ├─ pull.py
+│  ├─ README.md
+│  ├─ tools.py
+├─ pyproject.toml
+├─ README.md
+├─ requirements.txt
+```
+
+## .
+
+`pyproject.toml`
+
+```plaintext
+[tool.poetry]
+name = "ollama"
+version = "0.0.0"
+description = "The official Python client for Ollama."
+authors = ["Ollama <hello@ollama.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://ollama.com"
+repository = "https://github.com/ollama/ollama-python"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+httpx = "^0.27.0"
+pydantic = "^2.9.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.4.3,<9.0.0"
+pytest-asyncio = ">=0.23.2,<0.25.0"
+pytest-cov = ">=4.1,<6.0"
+pytest-httpserver = "^1.0.8"
+pillow = "^10.2.0"
+ruff = ">=0.1.8,<0.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 999
+indent-width = 2
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+
+[tool.ruff.lint]
+select = ["E", "F", "B"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+addopts = '--doctest-modules --ignore examples'
+```
+
+`README.md`
+
+```markdown
+# Ollama Python Library
+
+The Ollama Python library provides the easiest way to integrate Python 3.8+ projects with [Ollama](https://github.com/ollama/ollama).
+
+## Prerequisites
+
+- [Ollama](https://ollama.com/download) should be installed and running
+- Pull a model to use with the library: `ollama pull <model>` e.g. `ollama pull llama3.2`
+  - See [Ollama.com](https://ollama.com/search) for more information on the models available.
+
+## Install
+
+```sh
+pip install ollama
+```
+
+## Usage
+
+```python
+from ollama import chat
+from ollama import ChatResponse
+
+response: ChatResponse = chat(model='llama3.2', messages=[
+  {
+    'role': 'user',
+    'content': 'Why is the sky blue?',
+  },
+])
+print(response['message']['content'])
+# or access fields directly from the response object
+print(response.message.content)
+```
+
+See [_types.py](ollama/_types.py) for more information on the response types.
+
+## Streaming responses
+
+Response streaming can be enabled by setting `stream=True`.
+
+> [!NOTE]
+> Streaming Tool/Function calling is not yet supported.
+
+```python
+from ollama import chat
+
+stream = chat(
+    model='llama3.2',
+    messages=[{'role': 'user', 'content': 'Why is the sky blue?'}],
+    stream=True,
+)
+
+for chunk in stream:
+  print(chunk['message']['content'], end='', flush=True)
+```
+
+## Custom client
+A custom client can be created by instantiating `Client` or `AsyncClient` from `ollama`.
+
+All extra keyword arguments are passed into the [`httpx.Client`](https://www.python-httpx.org/api/#client).
+
+```python
+from ollama import Client
+client = Client(
+  host='http://localhost:11434',
+  headers={'x-some-header': 'some-value'}
+)
+response = client.chat(model='llama3.2', messages=[
+  {
+    'role': 'user',
+    'content': 'Why is the sky blue?',
+  },
+])
+```
+
+## Async client
+
+The `AsyncClient` class is used to make asynchronous requests. It can be configured with the same fields as the `Client` class.
+
+```python
+import asyncio
+from ollama import AsyncClient
+
+async def chat():
+  message = {'role': 'user', 'content': 'Why is the sky blue?'}
+  response = await AsyncClient().chat(model='llama3.2', messages=[message])
+
+asyncio.run(chat())
+```
+
+Setting `stream=True` modifies functions to return a Python asynchronous generator:
+
+```python
+import asyncio
+from ollama import AsyncClient
+
+async def chat():
+  message = {'role': 'user', 'content': 'Why is the sky blue?'}
+  async for part in await AsyncClient().chat(model='llama3.2', messages=[message], stream=True):
+    print(part['message']['content'], end='', flush=True)
+
+asyncio.run(chat())
+```
+
+## API
+
+The Ollama Python library's API is designed around the [Ollama REST API](https://github.com/ollama/ollama/blob/main/docs/api.md)
+
+### Chat
+
+```python
+ollama.chat(model='llama3.2', messages=[{'role': 'user', 'content': 'Why is the sky blue?'}])
+```
+
+### Generate
+
+```python
+ollama.generate(model='llama3.2', prompt='Why is the sky blue?')
+```
+
+### List
+
+```python
+ollama.list()
+```
+
+### Show
+
+```python
+ollama.show('llama3.2')
+```
+
+### Create
+
+```python
+modelfile='''
+FROM llama3.2
+SYSTEM You are mario from super mario bros.
+'''
+
+ollama.create(model='example', modelfile=modelfile)
+```
+
+### Copy
+
+```python
+ollama.copy('llama3.2', 'user/llama3.2')
+```
+
+### Delete
+
+```python
+ollama.delete('llama3.2')
+```
+
+### Pull
+
+```python
+ollama.pull('llama3.2')
+```
+
+### Push
+
+```python
+ollama.push('user/llama3.2')
+```
+
+### Embed
+
+```python
+ollama.embed(model='llama3.2', input='The sky is blue because of rayleigh scattering')
+```
+
+### Embed (batch)
+
+```python
+ollama.embed(model='llama3.2', input=['The sky is blue because of rayleigh scattering', 'Grass is green because of chlorophyll'])
+```
+
+### Ps
+
+```python
+ollama.ps()
+```
+
+
+## Errors
+
+Errors are raised if requests return an error status or if an error is detected while streaming.
+
+```python
+model = 'does-not-yet-exist'
+
+try:
+  ollama.chat(model)
+except ollama.ResponseError as e:
+  print('Error:', e.error)
+  if e.status_code == 404:
+    ollama.pull(model)
+```
+```
+
+`requirements.txt`
+
+```plaintext
+annotated-types==0.7.0 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53 \
+    --hash=sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89
+anyio==4.5.2 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:23009af4ed04ce05991845451e11ef02fc7c5ed29179ac9a420e5ad0ac7ddc5b \
+    --hash=sha256:c011ee36bc1e8ba40e5a81cb9df91925c218fe9b778554e0b56a21e1b5d4716f
+certifi==2024.8.30 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:922820b53db7a7257ffbda3f597266d435245903d80737e34f8a45ff3e3230d8 \
+    --hash=sha256:bec941d2aa8195e248a60b31ff9f0558284cf01a52591ceda73ea9afffd69fd9
+exceptiongroup==1.2.2 ; python_version >= "3.8" and python_version < "3.11" \
+    --hash=sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b \
+    --hash=sha256:47c2edf7c6738fafb49fd34290706d1a1a2f4d1c6df275526b62cbb4aa5393cc
+h11==0.14.0 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d \
+    --hash=sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761
+httpcore==1.0.6 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:27b59625743b85577a8c0e10e55b50b5368a4f2cfe8cc7bcfa9cf00829c2682f \
+    --hash=sha256:73f6dbd6eb8c21bbf7ef8efad555481853f5f6acdeaff1edb0694289269ee17f
+httpx==0.27.2 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:7bb2708e112d8fdd7829cd4243970f0c223274051cb35ee80c03301ee29a3df0 \
+    --hash=sha256:f7c2be1d2f3c3c3160d441802406b206c2b76f5947b11115e6df10c6c65e66c2
+idna==3.10 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9 \
+    --hash=sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3
+pydantic-core==2.23.4 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:0a7df63886be5e270da67e0966cf4afbae86069501d35c8c1b3b6c168f42cb36 \
+    --hash=sha256:0cb3da3fd1b6a5d0279a01877713dbda118a2a4fc6f0d821a57da2e464793f05 \
+    --hash=sha256:0dbd8dbed2085ed23b5c04afa29d8fd2771674223135dc9bc937f3c09284d071 \
+    --hash=sha256:0dff76e0602ca7d4cdaacc1ac4c005e0ce0dcfe095d5b5259163a80d3a10d327 \
+    --hash=sha256:1278e0d324f6908e872730c9102b0112477a7f7cf88b308e4fc36ce1bdb6d58c \
+    --hash=sha256:128585782e5bfa515c590ccee4b727fb76925dd04a98864182b22e89a4e6ed36 \
+    --hash=sha256:1498bec4c05c9c787bde9125cfdcc63a41004ff167f495063191b863399b1a29 \
+    --hash=sha256:19442362866a753485ba5e4be408964644dd6a09123d9416c54cd49171f50744 \
+    --hash=sha256:1b84d168f6c48fabd1f2027a3d1bdfe62f92cade1fb273a5d68e621da0e44e6d \
+    --hash=sha256:1e90d2e3bd2c3863d48525d297cd143fe541be8bbf6f579504b9712cb6b643ec \
+    --hash=sha256:20152074317d9bed6b7a95ade3b7d6054845d70584216160860425f4fbd5ee9e \
+    --hash=sha256:216f9b2d7713eb98cb83c80b9c794de1f6b7e3145eef40400c62e86cee5f4e1e \
+    --hash=sha256:233710f069d251feb12a56da21e14cca67994eab08362207785cf8c598e74577 \
+    --hash=sha256:255a8ef062cbf6674450e668482456abac99a5583bbafb73f9ad469540a3a232 \
+    --hash=sha256:2584f7cf844ac4d970fba483a717dbe10c1c1c96a969bf65d61ffe94df1b2863 \
+    --hash=sha256:2971bb5ffe72cc0f555c13e19b23c85b654dd2a8f7ab493c262071377bfce9f6 \
+    --hash=sha256:29d2c342c4bc01b88402d60189f3df065fb0dda3654744d5a165a5288a657368 \
+    --hash=sha256:2e203fdf807ac7e12ab59ca2bfcabb38c7cf0b33c41efeb00f8e5da1d86af480 \
+    --hash=sha256:33e3d65a85a2a4a0dc3b092b938a4062b1a05f3a9abde65ea93b233bca0e03f2 \
+    --hash=sha256:374a5e5049eda9e0a44c696c7ade3ff355f06b1fe0bb945ea3cac2bc336478a2 \
+    --hash=sha256:37b0fe330e4a58d3c58b24d91d1eb102aeec675a3db4c292ec3928ecd892a9a6 \
+    --hash=sha256:3d5639516376dce1940ea36edf408c554475369f5da2abd45d44621cb616f769 \
+    --hash=sha256:42c6dcb030aefb668a2b7009c85b27f90e51e6a3b4d5c9bc4c57631292015b0d \
+    --hash=sha256:4a7cd62e831afe623fbb7aabbb4fe583212115b3ef38a9f6b71869ba644624a2 \
+    --hash=sha256:4ba762ed58e8d68657fc1281e9bb72e1c3e79cc5d464be146e260c541ec12d84 \
+    --hash=sha256:4fc714bdbfb534f94034efaa6eadd74e5b93c8fa6315565a222f7b6f42ca1166 \
+    --hash=sha256:4ffa2ebd4c8530079140dd2d7f794a9d9a73cbb8e9d59ffe24c63436efa8f271 \
+    --hash=sha256:5a1504ad17ba4210df3a045132a7baeeba5a200e930f57512ee02909fc5c4cb5 \
+    --hash=sha256:5c364564d17da23db1106787675fc7af45f2f7b58b4173bfdd105564e132e6fb \
+    --hash=sha256:5e11661ce0fd30a6790e8bcdf263b9ec5988e95e63cf901972107efc49218b13 \
+    --hash=sha256:5f54b118ce5de9ac21c363d9b3caa6c800341e8c47a508787e5868c6b79c9323 \
+    --hash=sha256:5f5ff8d839f4566a474a969508fe1c5e59c31c80d9e140566f9a37bba7b8d556 \
+    --hash=sha256:61817945f2fe7d166e75fbfb28004034b48e44878177fc54d81688e7b85a3665 \
+    --hash=sha256:624e278a7d29b6445e4e813af92af37820fafb6dcc55c012c834f9e26f9aaaef \
+    --hash=sha256:63e46b3169866bd62849936de036f901a9356e36376079b05efa83caeaa02ceb \
+    --hash=sha256:6531b7ca5f951d663c339002e91aaebda765ec7d61b7d1e3991051906ddde119 \
+    --hash=sha256:68665f4c17edcceecc112dfed5dbe6f92261fb9d6054b47d01bf6371a6196126 \
+    --hash=sha256:696dd8d674d6ce621ab9d45b205df149399e4bb9aa34102c970b721554828510 \
+    --hash=sha256:6f783e0ec4803c787bcea93e13e9932edab72068f68ecffdf86a99fd5918878b \
+    --hash=sha256:723314c1d51722ab28bfcd5240d858512ffd3116449c557a1336cbe3919beb87 \
+    --hash=sha256:74b9127ffea03643e998e0c5ad9bd3811d3dac8c676e47db17b0ee7c3c3bf35f \
+    --hash=sha256:7530e201d10d7d14abce4fb54cfe5b94a0aefc87da539d0346a484ead376c3cc \
+    --hash=sha256:77733e3892bb0a7fa797826361ce8a9184d25c8dffaec60b7ffe928153680ba8 \
+    --hash=sha256:78ddaaa81421a29574a682b3179d4cf9e6d405a09b99d93ddcf7e5239c742e21 \
+    --hash=sha256:7c9129eb40958b3d4500fa2467e6a83356b3b61bfff1b414c7361d9220f9ae8f \
+    --hash=sha256:7d32706badfe136888bdea71c0def994644e09fff0bfe47441deaed8e96fdbc6 \
+    --hash=sha256:81965a16b675b35e1d09dd14df53f190f9129c0202356ed44ab2728b1c905658 \
+    --hash=sha256:8394d940e5d400d04cad4f75c0598665cbb81aecefaca82ca85bd28264af7f9b \
+    --hash=sha256:86d2f57d3e1379a9525c5ab067b27dbb8a0642fb5d454e17a9ac434f9ce523e3 \
+    --hash=sha256:883a91b5dd7d26492ff2f04f40fbb652de40fcc0afe07e8129e8ae779c2110eb \
+    --hash=sha256:88ad334a15b32a791ea935af224b9de1bf99bcd62fabf745d5f3442199d86d59 \
+    --hash=sha256:9261d3ce84fa1d38ed649c3638feefeae23d32ba9182963e465d58d62203bd24 \
+    --hash=sha256:97df63000f4fea395b2824da80e169731088656d1818a11b95f3b173747b6cd9 \
+    --hash=sha256:98d134c954828488b153d88ba1f34e14259284f256180ce659e8d83e9c05eaa3 \
+    --hash=sha256:996a38a83508c54c78a5f41456b0103c30508fed9abcad0a59b876d7398f25fd \
+    --hash=sha256:9a5bce9d23aac8f0cf0836ecfc033896aa8443b501c58d0602dbfd5bd5b37753 \
+    --hash=sha256:9a6b5099eeec78827553827f4c6b8615978bb4b6a88e5d9b93eddf8bb6790f55 \
+    --hash=sha256:9d18368b137c6295db49ce7218b1a9ba15c5bc254c96d7c9f9e924a9bc7825ad \
+    --hash=sha256:a4fa4fc04dff799089689f4fd502ce7d59de529fc2f40a2c8836886c03e0175a \
+    --hash=sha256:a5c7ba8ffb6d6f8f2ab08743be203654bb1aaa8c9dcb09f82ddd34eadb695605 \
+    --hash=sha256:aea443fffa9fbe3af1a9ba721a87f926fe548d32cab71d188a6ede77d0ff244e \
+    --hash=sha256:b10bd51f823d891193d4717448fab065733958bdb6a6b351967bd349d48d5c9b \
+    --hash=sha256:ba1a0996f6c2773bd83e63f18914c1de3c9dd26d55f4ac302a7efe93fb8e7433 \
+    --hash=sha256:bb2802e667b7051a1bebbfe93684841cc9351004e2badbd6411bf357ab8d5ac8 \
+    --hash=sha256:cfdd16ab5e59fc31b5e906d1a3f666571abc367598e3e02c83403acabc092e07 \
+    --hash=sha256:d06b0c8da4f16d1d1e352134427cb194a0a6e19ad5db9161bf32b2113409e728 \
+    --hash=sha256:d0776dea117cf5272382634bd2a5c1b6eb16767c223c6a5317cd3e2a757c61a0 \
+    --hash=sha256:d18ca8148bebe1b0a382a27a8ee60350091a6ddaf475fa05ef50dc35b5df6327 \
+    --hash=sha256:d4488a93b071c04dc20f5cecc3631fc78b9789dd72483ba15d423b5b3689b555 \
+    --hash=sha256:d5f7a395a8cf1621939692dba2a6b6a830efa6b3cee787d82c7de1ad2930de64 \
+    --hash=sha256:d7a80d21d613eec45e3d41eb22f8f94ddc758a6c4720842dc74c0581f54993d6 \
+    --hash=sha256:d97683ddee4723ae8c95d1eddac7c192e8c552da0c73a925a89fa8649bf13eea \
+    --hash=sha256:dcedcd19a557e182628afa1d553c3895a9f825b936415d0dbd3cd0bbcfd29b4b \
+    --hash=sha256:de6d1d1b9e5101508cb37ab0d972357cac5235f5c6533d1071964c47139257df \
+    --hash=sha256:df49e7a0861a8c36d089c1ed57d308623d60416dab2647a4a17fe050ba85de0e \
+    --hash=sha256:df933278128ea1cd77772673c73954e53a1c95a4fdf41eef97c2b779271bd0bd \
+    --hash=sha256:e08277a400de01bc72436a0ccd02bdf596631411f592ad985dcee21445bd0068 \
+    --hash=sha256:e38e63e6f3d1cec5a27e0afe90a085af8b6806ee208b33030e65b6516353f1a3 \
+    --hash=sha256:e55541f756f9b3ee346b840103f32779c695a19826a4c442b7954550a0972040 \
+    --hash=sha256:ec4e55f79b1c4ffb2eecd8a0cfba9955a2588497d96851f4c8f99aa4a1d39b12 \
+    --hash=sha256:ed1a53de42fbe34853ba90513cea21673481cd81ed1be739f7f2efb931b24916 \
+    --hash=sha256:ed541d70698978a20eb63d8c5d72f2cc6d7079d9d90f6b50bad07826f1320f5f \
+    --hash=sha256:f09e2ff1f17c2b51f2bc76d1cc33da96298f0a036a137f5440ab3ec5360b624f \
+    --hash=sha256:f220b0eea5965dec25480b6333c788fb72ce5f9129e8759ef876a1d805d00801 \
+    --hash=sha256:f3e0da4ebaef65158d4dfd7d3678aad692f7666877df0002b8a522cdf088f231 \
+    --hash=sha256:f455ee30a9d61d3e1a15abd5068827773d6e4dc513e795f380cdd59932c782d5 \
+    --hash=sha256:f5ef8f42bec47f21d07668a043f077d507e5bf4e668d5c6dfe6aaba89de1a5b8 \
+    --hash=sha256:f69a8e0b033b747bb3e36a44e7732f0c99f7edd5cea723d45bc0d6e95377ffee \
+    --hash=sha256:ff02b6d461a6de369f07ec15e465a88895f3223eb75073ffea56b84d9331f607
+pydantic==2.9.2 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:d155cef71265d1e9807ed1c32b4c8deec042a44a50a4188b25ac67ecd81a9c0f \
+    --hash=sha256:f048cec7b26778210e28a0459867920654d48e5e62db0958433636cde4254f12
+sniffio==1.3.1 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2 \
+    --hash=sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc
+typing-extensions==4.12.2 ; python_version >= "3.8" and python_version < "4.0" \
+    --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
+    --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
+```
+
+## examples
+
+`examples\async-chat.py`
+
+```python
+import asyncio
+from ollama import AsyncClient
+
+
+async def main():
+  messages = [
+    {
+      'role': 'user',
+      'content': 'Why is the sky blue?',
+    },
+  ]
+
+  client = AsyncClient()
+  response = await client.chat('llama3.2', messages=messages)
+  print(response['message']['content'])
+
+
+if __name__ == '__main__':
+  asyncio.run(main())
+```
+
+`examples\async-generate.py`
+
+```python
+import asyncio
+import ollama
+
+
+async def main():
+  client = ollama.AsyncClient()
+  response = await client.generate('llama3.2', 'Why is the sky blue?')
+  print(response['response'])
+
+
+if __name__ == '__main__':
+  try:
+    asyncio.run(main())
+  except KeyboardInterrupt:
+    print('\nGoodbye!')
+```
+
+`examples\async-tools.py`
+
+```python
+import asyncio
+from ollama import ChatResponse
+import ollama
+
+
+def add_two_numbers(a: int, b: int) -> int:
+  """
+  Add two numbers
+
+  Args:
+    a (int): The first number
+    b (int): The second number
+
+  Returns:
+    int: The sum of the two numbers
+  """
+  return a + b
+
+
+def subtract_two_numbers(a: int, b: int) -> int:
+  """
+  Subtract two numbers
+  """
+  return a - b
+
+
+# Tools can still be manually defined and passed into chat
+subtract_two_numbers_tool = {
+  'type': 'function',
+  'function': {
+    'name': 'subtract_two_numbers',
+    'description': 'Subtract two numbers',
+    'parameters': {
+      'type': 'object',
+      'required': ['a', 'b'],
+      'properties': {
+        'a': {'type': 'integer', 'description': 'The first number'},
+        'b': {'type': 'integer', 'description': 'The second number'},
+      },
+    },
+  },
+}
+
+messages = [{'role': 'user', 'content': 'What is three plus one?'}]
+print('Prompt:', messages[0]['content'])
+
+available_functions = {
+  'add_two_numbers': add_two_numbers,
+  'subtract_two_numbers': subtract_two_numbers,
+}
+
+
+async def main():
+  client = ollama.AsyncClient()
+
+  response: ChatResponse = await client.chat(
+    'llama3.1',
+    messages=messages,
+    tools=[add_two_numbers, subtract_two_numbers_tool],
+  )
+
+  if response.message.tool_calls:
+    # There may be multiple tool calls in the response
+    for tool in response.message.tool_calls:
+      # Ensure the function is available, and then call it
+      if function_to_call := available_functions.get(tool.function.name):
+        print('Calling function:', tool.function.name)
+        print('Arguments:', tool.function.arguments)
+        output = function_to_call(**tool.function.arguments)
+        print('Function output:', output)
+      else:
+        print('Function', tool.function.name, 'not found')
+
+  # Only needed to chat with the model using the tool call results
+  if response.message.tool_calls:
+    # Add the function response to messages for the model to use
+    messages.append(response.message)
+    messages.append({'role': 'tool', 'content': str(output), 'name': tool.function.name})
+
+    # Get final response from model with function outputs
+    final_response = await client.chat('llama3.1', messages=messages)
+    print('Final response:', final_response.message.content)
+
+  else:
+    print('No tool calls returned from model')
+
+
+if __name__ == '__main__':
+  try:
+    asyncio.run(main())
+  except KeyboardInterrupt:
+    print('\nGoodbye!')
+```
+
+`examples\chat-stream.py`
+
+```python
+from ollama import chat
+
+
+messages = [
+  {
+    'role': 'user',
+    'content': 'Why is the sky blue?',
+  },
+]
+
+for part in chat('llama3.2', messages=messages, stream=True):
+  print(part['message']['content'], end='', flush=True)
+
+print()
+```
+
+`examples\chat-with-history.py`
+
+```python
+from ollama import chat
+
+
+messages = [
+  {
+    'role': 'user',
+    'content': 'Why is the sky blue?',
+  },
+  {
+    'role': 'assistant',
+    'content': "The sky is blue because of the way the Earth's atmosphere scatters sunlight.",
+  },
+  {
+    'role': 'user',
+    'content': 'What is the weather in Tokyo?',
+  },
+  {
+    'role': 'assistant',
+    'content': 'The weather in Tokyo is typically warm and humid during the summer months, with temperatures often exceeding 30°C (86°F). The city experiences a rainy season from June to September, with heavy rainfall and occasional typhoons. Winter is mild, with temperatures rarely dropping below freezing. The city is known for its high-tech and vibrant culture, with many popular tourist attractions such as the Tokyo Tower, Senso-ji Temple, and the bustling Shibuya district.',
+  },
+]
+
+while True:
+  user_input = input('Chat with history: ')
+  response = chat(
+    'llama3.2',
+    messages=messages
+    + [
+      {'role': 'user', 'content': user_input},
+    ],
+  )
+
+  # Add the response to the messages to maintain the history
+  messages += [
+    {'role': 'user', 'content': user_input},
+    {'role': 'assistant', 'content': response.message.content},
+  ]
+  print(response.message.content + '\n')
+```
+
+`examples\chat.py`
+
+```python
+from ollama import chat
+
+messages = [
+  {
+    'role': 'user',
+    'content': 'Why is the sky blue?',
+  },
+]
+
+response = chat('llama3.2', messages=messages)
+print(response['message']['content'])
+```
+
+`examples\create.py`
+
+```python
+import sys
+
+from ollama import create
+
+
+args = sys.argv[1:]
+if len(args) == 2:
+  # create from local file
+  path = args[1]
+else:
+  print('usage: python create.py <name> <filepath>')
+  sys.exit(1)
+
+# TODO: update to real Modelfile values
+modelfile = f"""
+FROM {path}
+"""
+example_modelfile = """
+FROM llama3.2
+# sets the temperature to 1 [higher is more creative, lower is more coherent]
+PARAMETER temperature 1
+# sets the context window size to 4096, this controls how many tokens the LLM can use as context to generate the next token
+PARAMETER num_ctx 4096
+
+# sets a custom system message to specify the behavior of the chat assistant
+SYSTEM You are Mario from super mario bros, acting as an assistant.
+"""
+
+for response in create(model=args[0], modelfile=modelfile, stream=True):
+  print(response['status'])
+```
+
+`examples\embed.py`
+
+```python
+from ollama import embed
+
+response = embed(model='llama3.2', input='Hello, world!')
+print(response['embeddings'])
+```
+
+`examples\fill-in-middle.py`
+
+```python
+from ollama import generate
+
+prompt = '''def remove_non_ascii(s: str) -> str:
+    """ '''
+
+suffix = """
+    return result
+"""
+
+response = generate(
+  model='codellama:7b-code',
+  prompt=prompt,
+  suffix=suffix,
+  options={
+    'num_predict': 128,
+    'temperature': 0,
+    'top_p': 0.9,
+    'stop': ['<EOT>'],
+  },
+)
+
+print(response['response'])
+```
+
+`examples\generate-stream.py`
+
+```python
+from ollama import generate
+
+
+for part in generate('llama3.2', 'Why is the sky blue?', stream=True):
+  print(part['response'], end='', flush=True)
+```
+
+`examples\generate.py`
+
+```python
+from ollama import generate
+
+
+response = generate('llama3.2', 'Why is the sky blue?')
+print(response['response'])
+```
+
+`examples\list.py`
+
+```python
+from ollama import list
+from ollama import ListResponse
+
+response: ListResponse = list()
+
+for model in response.models:
+  print('Name:', model.model)
+  print('  Size (MB):', f'{(model.size.real / 1024 / 1024):.2f}')
+  if model.details:
+    print('  Format:', model.details.format)
+    print('  Family:', model.details.family)
+    print('  Parameter Size:', model.details.parameter_size)
+    print('  Quantization Level:', model.details.quantization_level)
+  print('\n')
+```
+
+`examples\multimodal-chat.py`
+
+```python
+from ollama import chat
+# from pathlib import Path
+
+# Pass in the path to the image
+path = input('Please enter the path to the image: ')
+
+# You can also pass in base64 encoded image data
+# img = base64.b64encode(Path(path).read_bytes()).decode()
+# or the raw bytes
+# img = Path(path).read_bytes()
+
+response = chat(
+  model='llama3.2-vision',
+  messages=[
+    {
+      'role': 'user',
+      'content': 'What is in this image? Be concise.',
+      'images': [path],
+    }
+  ],
+)
+
+print(response.message.content)
+```
+
+`examples\multimodal-generate.py`
+
+```python
+import sys
+import random
+import httpx
+
+from ollama import generate
+
+
+latest = httpx.get('https://xkcd.com/info.0.json')
+latest.raise_for_status()
+
+if len(sys.argv) > 1:
+  num = int(sys.argv[1])
+else:
+  num = random.randint(1, latest.json().get('num'))
+
+comic = httpx.get(f'https://xkcd.com/{num}/info.0.json')
+comic.raise_for_status()
+
+print(f'xkcd #{comic.json().get("num")}: {comic.json().get("alt")}')
+print(f'link: https://xkcd.com/{num}')
+print('---')
+
+raw = httpx.get(comic.json().get('img'))
+raw.raise_for_status()
+
+for response in generate('llava', 'explain this comic:', images=[raw.content], stream=True):
+  print(response['response'], end='', flush=True)
+
+print()
+```
+
+`examples\ps.py`
+
+```python
+from ollama import ps, pull, chat
+from ollama import ProcessResponse
+
+# Ensure at least one model is loaded
+response = pull('llama3.2', stream=True)
+progress_states = set()
+for progress in response:
+  if progress.get('status') in progress_states:
+    continue
+  progress_states.add(progress.get('status'))
+  print(progress.get('status'))
+
+print('\n')
+
+print('Waiting for model to load... \n')
+chat(model='llama3.2', messages=[{'role': 'user', 'content': 'Why is the sky blue?'}])
+
+
+response: ProcessResponse = ps()
+for model in response.models:
+  print('Model: ', model.model)
+  print('  Digest: ', model.digest)
+  print('  Expires at: ', model.expires_at)
+  print('  Size: ', model.size)
+  print('  Size vram: ', model.size_vram)
+  print('  Details: ', model.details)
+  print('\n')
+```
+
+`examples\pull.py`
+
+```python
+from tqdm import tqdm
+from ollama import pull
+
+
+current_digest, bars = '', {}
+for progress in pull('llama3.2', stream=True):
+  digest = progress.get('digest', '')
+  if digest != current_digest and current_digest in bars:
+    bars[current_digest].close()
+
+  if not digest:
+    print(progress.get('status'))
+    continue
+
+  if digest not in bars and (total := progress.get('total')):
+    bars[digest] = tqdm(total=total, desc=f'pulling {digest[7:19]}', unit='B', unit_scale=True)
+
+  if completed := progress.get('completed'):
+    bars[digest].update(completed - bars[digest].n)
+
+  current_digest = digest
+```
+
+`examples\README.md`
+
+```markdown
+# Running Examples
+
+Run the examples in this directory with:
+```sh
+# Run example
+python3 examples/<example>.py
+```
+
+### Chat - Chat with a model
+- [chat.py](chat.py)
+- [async-chat.py](async-chat.py)
+- [chat-stream.py](chat-stream.py) - Streamed outputs
+- [chat-with-history.py](chat-with-history.py) - Chat with model and maintain history of the conversation
+
+
+### Generate - Generate text with a model
+- [generate.py](generate.py)
+- [async-generate.py](async-generate.py)
+- [generate-stream.py](generate-stream.py) - Streamed outputs
+- [fill-in-middle.py](fill-in-middle.py) - Given a prefix and suffix, fill in the middle
+
+
+### Tools/Function Calling - Call a function with a model
+- [tools.py](tools.py) - Simple example of Tools/Function Calling
+- [async-tools.py](async-tools.py)
+
+
+### Multimodal with Images - Chat with a multimodal (image chat) model
+- [multimodal_chat.py](multimodal_chat.py)
+- [multimodal_generate.py](multimodal_generate.py)
+
+
+### Ollama List - List all downloaded models and their properties
+- [list.py](list.py)
+
+
+### Ollama ps - Show model status with CPU/GPU usage
+- [ps.py](ps.py)
+
+
+### Ollama Pull - Pull a model from Ollama
+Requirement: `pip install tqdm`
+- [pull.py](pull.py) 
+
+
+### Ollama Create - Create a model from a Modelfile
+```python
+python create.py <model> <modelfile>
+```
+- [create.py](create.py) 
+
+See [ollama/docs/modelfile.md](https://github.com/ollama/ollama/blob/main/docs/modelfile.md) for more information on the Modelfile format.
+
+
+### Ollama Embed - Generate embeddings with a model
+- [embed.py](embed.py)
+```
+
+`examples\tools.py`
+
+```python
+from ollama import chat
+from ollama import ChatResponse
+
+
+def add_two_numbers(a: int, b: int) -> int:
+  """
+  Add two numbers
+
+  Args:
+    a (int): The first number
+    b (int): The second number
+
+  Returns:
+    int: The sum of the two numbers
+  """
+  return a + b
+
+
+def subtract_two_numbers(a: int, b: int) -> int:
+  """
+  Subtract two numbers
+  """
+  return a - b
+
+
+# Tools can still be manually defined and passed into chat
+subtract_two_numbers_tool = {
+  'type': 'function',
+  'function': {
+    'name': 'subtract_two_numbers',
+    'description': 'Subtract two numbers',
+    'parameters': {
+      'type': 'object',
+      'required': ['a', 'b'],
+      'properties': {
+        'a': {'type': 'integer', 'description': 'The first number'},
+        'b': {'type': 'integer', 'description': 'The second number'},
+      },
+    },
+  },
+}
+
+messages = [{'role': 'user', 'content': 'What is three plus one?'}]
+print('Prompt:', messages[0]['content'])
+
+available_functions = {
+  'add_two_numbers': add_two_numbers,
+  'subtract_two_numbers': subtract_two_numbers,
+}
+
+response: ChatResponse = chat(
+  'llama3.1',
+  messages=messages,
+  tools=[add_two_numbers, subtract_two_numbers_tool],
+)
+
+if response.message.tool_calls:
+  # There may be multiple tool calls in the response
+  for tool in response.message.tool_calls:
+    # Ensure the function is available, and then call it
+    if function_to_call := available_functions.get(tool.function.name):
+      print('Calling function:', tool.function.name)
+      print('Arguments:', tool.function.arguments)
+      output = function_to_call(**tool.function.arguments)
+      print('Function output:', output)
+    else:
+      print('Function', tool.function.name, 'not found')
+
+# Only needed to chat with the model using the tool call results
+if response.message.tool_calls:
+  # Add the function response to messages for the model to use
+  messages.append(response.message)
+  messages.append({'role': 'tool', 'content': str(output), 'name': tool.function.name})
+
+  # Get final response from model with function outputs
+  final_response = chat('llama3.1', messages=messages)
+  print('Final response:', final_response.message.content)
+
+else:
+  print('No tool calls returned from model')
+```
+
+
+
